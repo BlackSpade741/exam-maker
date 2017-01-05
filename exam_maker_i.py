@@ -46,10 +46,13 @@ Enter information on the exam as prompted.""")
     end = False
 
     while not end:
-        question = input("Enter a question, '{}' if no more.".format(END))
+        question = input("Enter a question, '{}' if no more.".format(END)).\
+            strip()
 
         if question == END:
             end = True
+        elif exam.check_duplicate_question(question):
+            print('Error! That question is already in the exam')
         else:
             correct = input('Please enter the correct answer:')
             result = exam.add_question(question, [correct], 0)
@@ -65,6 +68,8 @@ Enter information on the exam as prompted.""")
 
                     if answer == END:
                         end_question = True
+                    elif answer in exam.content[len(exam.content) - 1][1]:
+                        print('Error! Cannot add a duplicate answer!')
                     else:
                         result = exam.add_answer(question, answer)
 
@@ -76,7 +81,8 @@ Enter information on the exam as prompted.""")
                 print('Success! \nThis is the question added:')
                 num = exam.find_question(question)
                 print(exam.str_question(num))
-                print('Correct answer: ' + str(exam.content[num][2] + 1))
+                print('Correct answer: ' +
+                      exam_maker.int_to_letter(exam.content[num][2] + 1))
 
     print('Success!')
     ui_main()
@@ -96,6 +102,7 @@ def ui_import_exam():
 
     global exam
     exam = exam_maker_io.import_exam(file)
+    file.close()
     print('Success!')
     ui_main()
 
@@ -116,8 +123,9 @@ def ui_main():
         option = input("""Please select an option:
 1. View your exam
 2. Find a question
-3. Export a student copy
-4. Save to a file
+3. Add a question
+4. Export a student copy
+5. Save to a file
 0. Quit the exam maker
 """)
 
@@ -132,8 +140,8 @@ def ui_main():
         elif option == '2':
             print('[Find a Question]')
             option = input("""How would you like to find your question?
-            1. With the question number
-            2. With the question itself""")
+1. With the question number
+2. With the question itself""")
 
             if option == '1':
                 while True:
@@ -156,6 +164,43 @@ def ui_main():
             else:
                 print('Error! Invalid input! Try again!')
         elif option == '3':
+            print('[Add Question]')
+            question = input('Please enter the question.').strip()
+
+            if exam.check_duplicate_question(question):
+                print('Error! That question is already in the exam!')
+            else:
+                correct = input('Please enter the correct answer:')
+                result = exam.add_question(question, [correct], 0)
+
+                if not result:
+                    print('Error! Try again!')
+                else:
+                    end_question = False
+
+                    while not end_question:
+                        answer = input("Please enter another answer, \
+'!end' if no more.")
+
+                        if answer == END:
+                            end_question = True
+                        elif answer in exam.content[len(exam.content) - 1][1]:
+                            print('Error! Cannot add a duplicate answer!')
+                        else:
+                            result = exam.add_answer(question, answer)
+
+                            if result:
+                                print('Answer successfully added!')
+                            else:
+                                print('Error! Try again!')
+
+                    print('Success! \nThis is the question added:')
+                    num = exam.find_question(question)
+                    print(exam.str_question(num))
+                    print('Correct answer: ' +
+                          exam_maker.int_to_letter(exam.content[num][2] + 1))
+
+        elif option == '4':
             print('[Export Student Copy]')
             copy = exam.shuffle_exam()
 
@@ -171,7 +216,7 @@ def ui_main():
             answer_file.close()
 
             print('The copy and its answer key has been exported!')
-        elif option == '4':
+        elif option == '5':
             print('[Save to File]')
             file_name = input('Please enter a file name to save to. '
                               'Enter nothing to save to the name of the exam.')
@@ -187,9 +232,9 @@ def ui_main():
         elif option == '0':
             while True:
                 option = input("""Are you sure you want to exit the program?
-                Any unsaved changes are lost.
-                1. Yes
-                2. No""")
+Any unsaved changes are lost.
+1. Yes
+2. No""")
 
                 if option == '1':
                     sys.exit()
@@ -213,7 +258,8 @@ def ui_question(question_i):
     while True:
         print('[Question Number {}]'.format(question_i + 1))
         print(exam.str_question(question_i))
-        print('Correct answer: {}'.format(exam.content[question_i][2]))
+        print('Correct answer: {}'.format(exam_maker.int_to_letter
+                                          (exam.content[question_i][2])))
 
         option = input("""Please select an option:
 1. Add an answer
@@ -235,7 +281,7 @@ def ui_question(question_i):
         elif option == '2':
             print('[Delete Answer]')
             let = input('Please enter the answer letter you would like to \
-            delete. ')
+delete. ')
 
             num = exam_maker.letter_to_int(let)
 
@@ -277,7 +323,7 @@ def ui_question(question_i):
             2. No''')
 
             if option == '1':
-                exam.content.delete(question_i)
+                exam.content.pop(question_i)
                 print('Question deleted.')
                 ui_main()
             elif option != '2':

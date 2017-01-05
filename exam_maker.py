@@ -101,7 +101,7 @@ class Exam:
         if q_index == -1:
             return False
 
-        self.content[q_index][2].append(answer)
+        self.content[q_index][1].append(answer)
         return True
 
     def add_answer_int(self, question, answer):
@@ -123,11 +123,11 @@ class Exam:
         """
 
         return """Exam name:{}
-        Subject: {}
-        School: {}
-        Instructor: {}
-        Number of questions: {}""".format(self.name, self.subject, self.school,
-                                          self.instructor, len(self.content))
+Subject: {}
+School: {}
+Instructor: {}
+Number of questions: {}""".format(self.name, self.subject, self.school,
+                                  self.instructor, len(self.content))
 
     def str_question(self, q):
         """ Return a str representation of the question indicated by q,
@@ -160,8 +160,8 @@ class Exam:
         self.versions += 1
         new.versions += 1
 
-        for question in new.content:
-            new.shuffle_answers(question)
+        for i in range(len(new.content)):
+            new.shuffle_answers(i)
 
         random.shuffle(new.content)
         return new
@@ -175,6 +175,47 @@ class Exam:
         @rtype: None
         """
 
-        correct = self.content[q][2]
+        correct = self.content[q][1][self.content[q][2]]
         random.shuffle(self.content[q][1])
-        self.content[q][2] = self.content[q][1].find(correct)
+        self.content[q][2] = self.content[q][1].index(correct)
+
+    def check_duplicate_question(self, q):
+        """ Return a bool indicating if the question already exists in the exam.
+
+        @type self: Exam
+        @type q: str
+        @rtype: bool
+        """
+
+        for question in self.content:
+            if q == question[0]:
+                return True
+
+        return False
+        
+    
+def int_to_letter(num):
+    """ Return a lowercase letter based on the number given. 
+    
+    @type num: int
+        Precondition: num < 26
+    @rtype: str
+    """
+    
+    return chr(A_LOWER + num - 1)
+
+def letter_to_int(let):
+    """ Return a number starting from 1 based on the letter given.
+    
+    @type let: str
+        Precondition: let.alpha() == True
+    @rtype: int
+    """
+    
+    num = ord(let)
+    
+    if num < A_LOWER:
+        return num - A_UPPER + 1
+    return num - A_LOWER + 1
+    
+    
